@@ -62,10 +62,6 @@ jobs:
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/register:${{ github.sha }}
 
-      - name: Clean up unused images
-        run: docker image prune -f
-
-
 #  deploy-on-aws:
 #    runs-on: ubuntu-latest
 #    needs: build-and-deploy
