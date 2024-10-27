@@ -35,10 +35,13 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t sammyalade/hello-world:latest .
+        run: docker build -t sammyalade/register:${{ github.sha }} .
 
       - name: Push Docker image to Docker Hub
-        run: docker push sammyalade/hello-world:latest
+        run: docker push sammyalade/register:${{ github.sha }}
+
+      - name: Clean up unused images
+        run: docker image prune -f
 
 #  deploy-on-aws:
 #    runs-on: ubuntu-latest
