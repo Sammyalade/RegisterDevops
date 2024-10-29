@@ -4,4 +4,4 @@ RUN mvn -B clean package -DskipTests
 
 FROM openjdk:17
 COPY --from=build target/*.jar register.jar
-ENTRYPOINT ["java", "-jar", "D-server.port=9090", "register.jar"]
+ENTRYPOINT ["java", "-jar", "register.jar", "--server.port=9090"]
