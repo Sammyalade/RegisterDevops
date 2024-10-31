@@ -7,4 +7,4 @@ RUN apt-get update && apt-get install -y postgresql postgresql-contrib && rm -rf
 COPY --from=build target/*.jar register.jar
 EXPOSE 5432
 EXPOSE 9090
-CMD service postgresql start && java -jar register.jar --server.port=9090
+CMD service postgresql start && ENTRYPOINT ["java", "-jar", "register.jar", "--server.port=9090"]
