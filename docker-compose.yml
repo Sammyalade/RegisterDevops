@@ -3,9 +3,9 @@ services:
     image: sammyalade/register:9a10d98666dff8a8c1a8d623bf9b5e29b87c7131
     restart: on-failure
     environment:
-      spring.datasource.url: jdbc:postgresql://postgres:5432/register
-      spring.datasource.username: postgres
-      spring.datasource.password: 08027146369Aos@@@
+      spring.datasource.url: ${secrets.DATABASE_URL}
+      spring.datasource.username: ${secrets.DATABASE_USERNAME}
+      spring.datasource.password: ${secrets.DATABASE_PASSWORD}
     logging:
       driver: "json-file"
       options:
@@ -27,9 +27,9 @@ services:
   postgres:
     image: postgres
     environment:
-      POSTGRES_DB: register
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 08027146369Aos@@@
+      POSTGRES_DB: ${secrets.POSTGRES_DB}
+      POSTGRES_USER: ${secrets.DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${secrets.DATABASE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
