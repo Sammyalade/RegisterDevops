@@ -1,0 +1,41 @@
+services:
+  app:
+    image: sammyalade/register:9a10d98666dff8a8c1a8d623bf9b5e29b87c7131
+    restart: on-failure
+    environment:
+      spring.datasource.url: jdbc:postgresql://postgres:5432/register
+      spring.datasource.username: postgres
+      spring.datasource.password: 08027146369Aos@@@
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "9090:9090"
+    mem_limit: 128m
+    cpus: "1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 128m
+        reservations:
+          cpus: "0.5"
+          memory: 128m
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: register
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 08027146369Aos@@@
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    mem_limit: 128m
+    cpus: "0.5"
+
+volumes:
+  postgres_data:

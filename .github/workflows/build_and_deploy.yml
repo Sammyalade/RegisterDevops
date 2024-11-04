@@ -21,7 +21,7 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
-          --health-timeout 5s
+          --health-timeout 10s
           --health-retries 5
 
     steps:
@@ -42,20 +42,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('/*.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Install Docker and Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-          sudo systemctl start docker
-          sudo systemctl enable docker
-          sudo apt-get install -y docker-compose
-
-      - name: Check Docker and Docker Compose versions
-        run: |
-          docker --version
-          docker-compose --version
-
 
 
       - name: Wait for PostgreSQL to be ready
@@ -78,14 +64,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and run with Docker Compose
-        run: |
-            docker-compose -f docker-compose.yml build
-            docker-compose -f docker-compose.yml up -d
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/register .
 
-      - name: Push Docker images to Docker Hub
-        run: |
-              docker-compose -f docker-compose.yml push
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/register
 
 #  deploy-on-aws:
 #    runs-on: ubuntu-latest
