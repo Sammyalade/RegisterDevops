@@ -1,6 +1,6 @@
 services:
   app:
-    image: sammyalade/register:9a10d98666dff8a8c1a8d623bf9b5e29b87c7131
+    image: sammyalade/register:latest
     restart: on-failure
     environment:
       spring.datasource.url: ${DATABASE_URL}
