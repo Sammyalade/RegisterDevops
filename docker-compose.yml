@@ -2,10 +2,14 @@ services:
   app:
     image: sammyalade/register:latest
     restart: on-failure
+    env_file:
+      - .env
     environment:
       spring.datasource.url: ${DATABASE_URL}
       spring.datasource.username: ${DATABASE_USERNAME}
       spring.datasource.password: ${DATABASE_PASSWORD}
+    volumes:
+      - ./path/to/.env:/path/in/container/.env
     logging:
       driver: "json-file"
       options:
@@ -26,6 +30,8 @@ services:
 
   postgres:
     image: postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${DATABASE_USERNAME}
