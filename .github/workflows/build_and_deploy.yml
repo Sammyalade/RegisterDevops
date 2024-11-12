@@ -103,7 +103,7 @@ jobs:
           if [ "$SECURITY_GROUP_ID" = "None" ]; then
             SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-ss --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
             aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
-            aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0
+            aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 9090 --cidr 0.0.0.0/0
           else
             echo "Reusing existing security group: $SECURITY_GROUP_ID"
           fi
