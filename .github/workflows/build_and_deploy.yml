@@ -121,21 +121,21 @@ jobs:
 
       - name: Create new-key.pem file
         run: |
-          echo "${{ secrets.EC2_KEY }}" > new-key.pem
-          chmod 600 new-key.pem
+          echo "${{ secrets.EC2_KEY }}" > cloud.pem
+          chmod 600 cloud.pem
 
       - name: Install Docker on EC2
         run: |
           INSTANCE_ID=${{ steps.create_ec2.outputs.instance_id || steps.check_instance.outputs.instance_id }}
           PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
           echo "Attempting SSH connection to $PUBLIC_IP"
-          ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo systemctl enable docker"
+          ssh -o StrictHostKeyChecking=no -i cloud.pem ubuntu@$PUBLIC_IP "sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo systemctl enable docker"
 
       - name: Create Docker network on EC2
         run: |
           INSTANCE_ID=${{ steps.create_ec2.outputs.instance_id || steps.check_instance.outputs.instance_id }}
           PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker network create my-network || true"
+          ssh -o StrictHostKeyChecking=no -i cloud.pem ubuntu@$PUBLIC_IP "sudo docker network create my-network || true"
           
       - name: Ensure PostgreSQL container exists
         run: |
