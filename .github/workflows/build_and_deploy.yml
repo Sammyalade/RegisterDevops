@@ -29,6 +29,7 @@ jobs:
             ${{ runner.os }}-maven-
 
 #      - name: Run Tests
+#        if: success()
 #        env:
 #          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 #          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
@@ -70,26 +71,23 @@ jobs:
             fi
           fi
 
-
       - name: Create EC2 instance (if not exists or terminated)
         if: steps.check_instance.outputs.instance_exists == 'false'
         id: create_ec2
         run: |
           VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[0].VpcId' --output text)
           SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=cloud-sss" --query "SecurityGroups[0].GroupId" --output text)
-          
+
           if [ "$SECURITY_GROUP_ID" = "None" ]; then
-          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-s --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
-          aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
-          aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 9090 --cidr 0.0.0.0/0
+            SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-sss --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
+            aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+            aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 9090 --cidr 0.0.0.0/0
           else
-          echo "Reusing existing security group: $SECURITY_GROUP_ID"
+            echo "Reusing existing security group: $SECURITY_GROUP_ID"
           fi
-          
-          SECURITY_GROUP_ID=$(echo $SECURITY_GROUP_ID | awk -F'/' '{print $2}')
-          
+
           INSTANCE_ID=$(aws ec2 run-instances --image-id ami-0866a3c8686eaeeba --count 1 --instance-type t2.micro --key-name new-key --security-group-ids $SECURITY_GROUP_ID --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=new-key},{Key=Environment,Value=development}]' --query 'Instances[0].InstanceId' --output text)
-          
+
           echo "::set-output name=instance_id::$INSTANCE_ID"
 
       - name: Wait for EC2 instance to be running
@@ -133,7 +131,7 @@ jobs:
           INSTANCE_ID=${{ steps.create_ec2.outputs.instance_id || steps.check_instance.outputs.instance_id }}
           PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
           for i in {1..10}; do
-            if ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "nc -z postgres-container 5432"; then
+            if ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "nc -zv postgres-container 5432"; then
               echo "PostgreSQL is up!"
               break
             fi
@@ -147,6 +145,6 @@ jobs:
           PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
           if ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "docker ps -q -f name=clouds-container"; then
             echo "Updating existing clouds-container..."
-            ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker stop clouds-container && sudo docker rm clouds-container || true"
+            ssh -o StrictHostKeyChecking-no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker stop clouds-container && sudo docker rm clouds-container || true"
           fi
-          ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker run -d --name clouds-container --network my-network --memory 256m -e SPRING_DATASOURCE_URL=${{ secrets.DATABASE_URL }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DATABASE_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} -p ${{ secrets.POSTGRES_PORT }}:${{ secrets.POSTGRES_PORT }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME}}:latest"
+          ssh -o StrictHostKeyChecking-no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker run -d --name clouds-container --network my-network --memory 256m -e SPRING_DATASOURCE_URL=${{ secrets.DATABASE_URL }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DATABASE_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} -p ${{ secrets.POSTGRES_PORT }}:${{ secrets.POSTGRES_PORT }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME}}:latest"
