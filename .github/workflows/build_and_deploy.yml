@@ -86,7 +86,7 @@ jobs:
             echo "Reusing existing security group: $SECURITY_GROUP_ID"
           fi
 
-          INSTANCE_ID=$(aws ec2 run-instances --image-id ami-0866a3c8686eaeeba --count 1 --instance-type t2.micro --key-name new-key --security-group-ids $SECURITY_GROUP_ID --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=new-key},{Key=Environment,Value=development}]' --query 'Instances[0].InstanceId' --output text)
+          INSTANCE_ID=$(aws ec2 run-instances --image-id ami-0866a3c8686eaeeba --count 1 --instance-type t2.micro --key-name new-key --security-group-ids $SECURITY_GROUP_ID --user-data file://install-docker.sh --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=new-key},{Key=Environment,Value=development}]' --query 'Instances[0].InstanceId' --output text)
 
           echo "::set-output name=instance_id::$INSTANCE_ID"
 
@@ -101,13 +101,6 @@ jobs:
         run: |
           echo "${{ secrets.EC2_KEY }}" > new-key.pem
           chmod 600 new-key.pem
-
-      - name: Install Docker on EC2
-        run: |
-          INSTANCE_ID=${{ steps.create_ec2.outputs.instance_id || steps.check_instance.outputs.instance_id }}
-          PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          echo "Attempting SSH connection to $PUBLIC_IP"
-          ssh -tt -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker && sudo systemctl enable docker"
 
       - name: Create Docker network on EC2
         run: |
@@ -140,11 +133,3 @@ jobs:
           done
 
       - name: Deploy updated application container
-        run: |
-          INSTANCE_ID=${{ steps.create_ec2.outputs.instance_id || steps.check_instance.outputs.instance_id }}
-          PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          if ssh -o StrictHostKeyChecking=no -i new-key.pem ubuntu@$PUBLIC_IP "docker ps -q -f name=clouds-container"; then
-            echo "Updating existing clouds-container..."
-            ssh -o StrictHostKeyChecking-no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker stop clouds-container && sudo docker rm clouds-container || true"
-          fi
-          ssh -o StrictHostKeyChecking-no -i new-key.pem ubuntu@$PUBLIC_IP "sudo docker run -d --name clouds-container --network my-network --memory 256m -e SPRING_DATASOURCE_URL=${{ secrets.DATABASE_URL }} -e SPRING_DATASOURCE_USERNAME=${{ secrets.DATABASE_USERNAME }} -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} -p ${{ secrets.POSTGRES_PORT }}:${{ secrets.POSTGRES_PORT }} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME}}:latest"
