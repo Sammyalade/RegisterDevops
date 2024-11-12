@@ -75,16 +75,15 @@ jobs:
         if: steps.check_instance.outputs.instance_exists == 'false'
         id: create_ec2
         run: |
-          VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[0].VpcId' --output text)
-
-            SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=cloud-sss" --query "SecurityGroups[0].GroupId" --output text)
+            VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[0].VpcId' --output text)
+            SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=cloud-s" --query "SecurityGroups[0].GroupId" --output text)
           
             if [ "$SECURITY_GROUP_ID" = "None" ]; then
-            SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-sss --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
+            SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-s --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
             aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
             aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 9090 --cidr 0.0.0.0/0
             else
-          echo "Reusing existing security group: $SECURITY_GROUP_ID"
+            echo "Reusing existing security group: $SECURITY_GROUP_ID"
             fi
           
             SECURITY_GROUP_ID=$(echo $SECURITY_GROUP_ID | awk -F'/' '{print $2}')
