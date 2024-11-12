@@ -69,6 +69,7 @@ jobs:
               echo "::set-output name=instance_id::$INSTANCE_ID"
             fi
           fi
+          
 
       - name: Create EC2 instance (if not exists or terminated)
         if: steps.check_instance.outputs.instance_exists == 'false'
