@@ -92,14 +92,14 @@ jobs:
               echo "::set-output name=instance_id::$INSTANCE_ID"
             fi
           fi
-          
+
       - name: Create EC2 instance (if not exists or terminated)
         if: steps.check_instance.outputs.instance_exists == 'false'
         id: create_ec2
         run: |
           VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[0].VpcId' --output text)
           SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=cloud-ss" --query "SecurityGroups[0].GroupId" --output text)
-
+          
           if [ "$SECURITY_GROUP_ID" = "None" ]; then
             SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name cloud-ss --description "Security group for cloud instance" --vpc-id $VPC_ID --output text)
             aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
@@ -107,11 +107,10 @@ jobs:
           else
             echo "Reusing existing security group: $SECURITY_GROUP_ID"
           fi
-
+          
           INSTANCE_ID=$(aws ec2 run-instances --image-id ami-0866a3c8686eaeeba --count 1 --instance-type t2.micro --key-name cloud --security-group-ids $SECURITY_GROUP_ID --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=cloud},{Key=Environment,Value=development}]' --query 'Instances[0].InstanceId' --output text)
-
+          
           echo "::set-output name=instance_id::$INSTANCE_ID"
-      
 
       - name: Wait for EC2 instance to be running
         if: steps.create_ec2.outputs.instance_id != '' || steps.check_instance.outputs.instance_exists == 'true'
@@ -123,7 +122,7 @@ jobs:
       - name: Create new-key.pem file
         run: |
           echo "${{ secrets.EC2_KEY }}" > new-key.pem
-          chmod 600 cloud.pem
+          chmod 600 new-key.pem
 
       - name: Install Docker on EC2
         run: |
