@@ -1,3 +1,7 @@
+ARG DATABASE_URL
+ARG DATABASE_USERNAME
+ARG DATABASE_PASSWORD
+
 FROM maven:3.8.7 AS build
 COPY . .
 RUN mvn -B clean package -DskipTests

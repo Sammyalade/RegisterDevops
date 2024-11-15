@@ -10,10 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
-
 @RestController
-@RequestMapping("/api/v1/media")
+@RequestMapping("/api/v1")
 @AllArgsConstructor
 public class UserController {
 
