@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -21,7 +22,8 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(c->c.sessionCreationPolicy(STATELESS))
                 .authorizeHttpRequests(c->
-                        c.requestMatchers(POST,"/api/v1/register").permitAll())
+                        c.requestMatchers(POST,"/api/v1/register").permitAll()
+                                .requestMatchers(GET, "fibonacci/{number}").permitAll())
                 .build();
     }
 }
