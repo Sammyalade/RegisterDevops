@@ -23,7 +23,8 @@ public class SecurityConfig {
                 .sessionManagement(c->c.sessionCreationPolicy(STATELESS))
                 .authorizeHttpRequests(c->
                         c.requestMatchers(POST,"/api/v1/register").permitAll()
-                                .requestMatchers(GET, "fibonacci/{number}").permitAll())
+                                .requestMatchers(GET, "fibonacci/{number}").permitAll()
+                                .anyRequest().permitAll())
                 .build();
     }
 }
