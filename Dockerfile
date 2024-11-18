@@ -1,13 +1,17 @@
-ARG DATABASE_URL
-ARG DATABASE_USERNAME
-ARG DATABASE_PASSWORD
-
 FROM maven:3.8.7 AS build
 COPY . .
 RUN mvn -B clean package -DskipTests
 
 FROM openjdk:17
-COPY docker-compose.yml /docker-compose.yml
-COPY --from=build target/*.jar register.jar
-ENTRYPOINT ["java", "-jar", "register.jar", "--server.port=9090"]
+ARG DATABASE_URL
+ARG DATABASE_USERNAME
+ARG DATABASE_PASSWORD
 
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DATABASE_USERNAME=${DATABASE_USERNAME}
+ENV DATABASE_PASSWORD=${DATABASE_PASSWORD}
+COPY --from=build target/*.jar register.jar
+
+EXPOSE 9090
+
+ENTRYPOINT ["java", "-jar", "register.jar", "--server.port=9090"]
